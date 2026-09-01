@@ -1,6 +1,6 @@
 # Gestão de Chamados — Frontend
 
-Interface web em React para consumir a [API de Gestão de Chamados](../../gestao-chamados) *(ajuste o link para o repositório real)*. Permite cadastrar, editar, listar, filtrar por status e visualizar chamados atrasados em uma tabela.
+Interface web em React para consumir a [API de Gestão de Chamados](https://github.com/davi7709/Gestao-de-Chamados) . Permite cadastrar, editar, listar, filtrar por status e visualizar chamados atrasados em uma tabela.
 
 Este foi meu primeiro contato com React — desenvolvido durante o desafio como forma de aprender o framework na prática.
 
