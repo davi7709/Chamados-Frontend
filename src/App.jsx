@@ -22,11 +22,15 @@ function App() {
     const [idsAtrasados, setIdsAtrasados] = useState(new Set());
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState(null);
-
+    const [filtroStatus, setFiltroStatus] = useState('TODOS');
     const [novoChamado, setNovoChamado] = useState(CHAMADO_VAZIO);
     const [editandoId, setEditandoId] = useState(null); // null = modo criação
 
     const formRef = useRef(null);
+    const chamadosFiltrados = filtroStatus === 'TODOS'
+    ? chamados
+    : chamados.filter(chamado => chamado.status === filtroStatus);
+
 
     useEffect(() => {
         Promise.all([listarChamados(), listarAtrasados()])
@@ -125,7 +129,13 @@ function App() {
                     </button>
                 )}
             </form>
-
+            <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)} className="filtro-status">
+                <option value="TODOS">Todos os status</option>
+                    {STATUS_OPCOES.map(status => (
+                <option key={status} value={status}>{status}</option>
+                ))}
+            </select>
+<table></table>
             <table>
                 <thead>
                     <tr>
@@ -138,7 +148,7 @@ function App() {
                     </tr>
                 </thead>
                 <tbody>
-                    {chamados.map(chamado => (
+                    {chamadosFiltrados.map(chamado => (
                         <tr key={chamado.id} className={idsAtrasados.has(chamado.id) ? 'atrasado' : ''}>
                             <td>{chamado.titulo}</td>
                             <td>{chamado.solicitante}</td>
