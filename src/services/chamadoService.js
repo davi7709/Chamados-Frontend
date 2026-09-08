@@ -1,12 +1,5 @@
 const API_URL = 'http://localhost:8080/api/chamados';
 
-export async function listarChamados() {
-    const resposta = await fetch(API_URL);
-    if (!resposta.ok) {
-        throw new Error('Erro ao buscar chamados');
-    }
-    return resposta.json();
-}
 
 export async function alterarStatus(id, novoStatus) {
     const resposta = await fetch(`${API_URL}/${id}/status`, {
@@ -50,4 +43,12 @@ export async function editarChamado(id, dados) {
         throw new Error('Erro ao editar chamado');
     }
     return resposta.json();
+}
+
+export async function listarChamados(pagina = 0, tamanho = 20) {
+    const resposta = await fetch(`${API_URL}?page=${pagina}&size=${tamanho}`);
+    if (!resposta.ok) {
+        throw new Error('Erro ao buscar chamados');
+    }
+    return resposta.json(); // agora retorna { content, totalPages, totalElements, ... }
 }

@@ -181,4 +181,41 @@
     right: 0;
     border-right-color: var(--border);
   }
+
+}
+
+.paginacao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.paginacao button {
+    padding: 8px 16px;
+    background: #4a5cff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.paginacao button:hover:not(:disabled) {
+    background: #3947d1;
+}
+
+.paginacao button:disabled {
+    background: #e2e4ea;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.paginacao span {
+    font-size: 0.9rem;
+    color: #4b5563;
+    font-weight: 500;
 }

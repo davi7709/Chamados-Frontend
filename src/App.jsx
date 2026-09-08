@@ -25,6 +25,8 @@ function App() {
     const [filtroStatus, setFiltroStatus] = useState('TODOS');
     const [novoChamado, setNovoChamado] = useState(CHAMADO_VAZIO);
     const [editandoId, setEditandoId] = useState(null); // null = modo criação
+    const [paginaAtual, setPaginaAtual] = useState(0);
+    const [totalPaginas, setTotalPaginas] = useState(0);
 
     const formRef = useRef(null);
     const chamadosFiltrados = filtroStatus === 'TODOS'
@@ -33,14 +35,16 @@ function App() {
 
 
     useEffect(() => {
-        Promise.all([listarChamados(), listarAtrasados()])
-            .then(([dadosChamados, dadosAtrasados]) => {
-                setChamados(dadosChamados);
-                setIdsAtrasados(new Set(dadosAtrasados.map(c => c.id)));
-            })
-            .catch(err => setErro(err.message))
-            .finally(() => setCarregando(false));
-    }, []);
+    setCarregando(true);
+    Promise.all([listarChamados(paginaAtual), listarAtrasados()])
+        .then(([resultadoChamados, dadosAtrasados]) => {
+            setChamados(resultadoChamados.content);
+            setTotalPaginas(resultadoChamados.totalPages);
+            setIdsAtrasados(new Set(dadosAtrasados.map(c => c.id)));
+        })
+        .catch(err => setErro(err.message))
+        .finally(() => setCarregando(false));
+    }, [paginaAtual]);
 
     function handleCampoChange(evento) {
         const { name, value } = evento.target;
@@ -129,12 +133,20 @@ function App() {
                     </button>
                 )}
             </form>
-            <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)} className="filtro-status">
-                <option value="TODOS">Todos os status</option>
-                    {STATUS_OPCOES.map(status => (
-                <option key={status} value={status}>{status}</option>
+            <div className="filtro-container">
+                <label htmlFor="filtro-status">Filtrar por status: </label>
+                    <select
+                        id="filtro-status"
+                            value={filtroStatus}
+                            onChange={e => setFiltroStatus(e.target.value)}
+                            className="filtro-status"
+                        >
+                        <option value="TODOS">Todos os status</option>
+        {STATUS_OPCOES.map(status => (
+            <option key={status} value={status}>{status}</option>
                 ))}
-            </select>
+                    </select>
+</div>
 <table></table>
             <table>
                 <thead>
@@ -180,6 +192,15 @@ function App() {
                         </tr>
                     ))}
                 </tbody>
+                    <div className="paginacao">
+                        <button disabled={paginaAtual === 0} onClick={() => setPaginaAtual(p => p - 1)}>
+                            ← Anterior
+                        </button>
+                        <span> Página {paginaAtual + 1} de {totalPaginas} </span>
+                        <button disabled={paginaAtual + 1 >= totalPaginas} onClick={() => setPaginaAtual(p => p + 1)}>
+                            Próxima →
+                        </button>
+                    </div>
             </table>
         </div>
     );
