@@ -52,3 +52,23 @@ export async function listarChamados(pagina = 0, tamanho = 20) {
     }
     return resposta.json(); // agora retorna { content, totalPages, totalElements, ... }
 }
+
+export async function listarComentarios(chamadoId) {
+    const resposta = await fetch(`${API_URL}/${chamadoId}/comentarios`);
+    if (!resposta.ok) {
+        throw new Error('Erro ao buscar comentários');
+    }
+    return resposta.json();
+}
+
+export async function adicionarComentario(chamadoId, comentario) {
+    const resposta = await fetch(`${API_URL}/${chamadoId}/comentarios`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comentario })
+    });
+    if (!resposta.ok) {
+        throw new Error('Erro ao adicionar comentário');
+    }
+    return resposta.json();
+}

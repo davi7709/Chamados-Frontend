@@ -219,3 +219,47 @@
     color: #4b5563;
     font-weight: 500;
 }
+
+.linha-comentarios td {
+    background: #f9fafc;
+    padding: 16px 24px;
+}
+
+.lista-comentarios {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+}
+
+.lista-comentarios li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eef0f4;
+    font-size: 0.9rem;
+}
+
+.data-comentario {
+    display: block;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-bottom: 2px;
+}
+
+.sem-comentarios {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    margin: 0 0 12px 0;
+}
+
+.form-comentario {
+    display: flex;
+    gap: 8px;
+}
+
+.form-comentario input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: inherit;
+}

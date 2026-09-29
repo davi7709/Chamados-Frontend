@@ -1,10 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import {
     listarChamados,
     criarChamado,
     editarChamado,
     alterarStatus,
-    listarAtrasados
+    listarAtrasados,
+    listarComentarios,
+    adicionarComentario
 } from './services/chamadoService';
 import './App.css';
 
@@ -24,26 +26,29 @@ function App() {
     const [erro, setErro] = useState(null);
     const [filtroStatus, setFiltroStatus] = useState('TODOS');
     const [novoChamado, setNovoChamado] = useState(CHAMADO_VAZIO);
-    const [editandoId, setEditandoId] = useState(null); // null = modo criação
+    const [editandoId, setEditandoId] = useState(null);
     const [paginaAtual, setPaginaAtual] = useState(0);
     const [totalPaginas, setTotalPaginas] = useState(0);
+    const [chamadoExpandidoId, setChamadoExpandidoId] = useState(null);
+    const [comentarios, setComentarios] = useState([]);
+    const [textoComentario, setTextoComentario] = useState('');
 
     const formRef = useRef(null);
-    const chamadosFiltrados = filtroStatus === 'TODOS'
-    ? chamados
-    : chamados.filter(chamado => chamado.status === filtroStatus);
 
+    const chamadosFiltrados = filtroStatus === 'TODOS'
+        ? chamados
+        : chamados.filter(chamado => chamado.status === filtroStatus);
 
     useEffect(() => {
-    setCarregando(true);
-    Promise.all([listarChamados(paginaAtual), listarAtrasados()])
-        .then(([resultadoChamados, dadosAtrasados]) => {
-            setChamados(resultadoChamados.content);
-            setTotalPaginas(resultadoChamados.totalPages);
-            setIdsAtrasados(new Set(dadosAtrasados.map(c => c.id)));
-        })
-        .catch(err => setErro(err.message))
-        .finally(() => setCarregando(false));
+        setCarregando(true);
+        Promise.all([listarChamados(paginaAtual), listarAtrasados()])
+            .then(([resultadoChamados, dadosAtrasados]) => {
+                setChamados(resultadoChamados.content);
+                setTotalPaginas(resultadoChamados.totalPages);
+                setIdsAtrasados(new Set(dadosAtrasados.map(c => c.id)));
+            })
+            .catch(err => setErro(err.message))
+            .finally(() => setCarregando(false));
     }, [paginaAtual]);
 
     function handleCampoChange(evento) {
@@ -86,10 +91,27 @@ function App() {
         const atualizado = await alterarStatus(chamado.id, novoStatus);
         setChamados(chamados.map(c => c.id === atualizado.id ? atualizado : c));
 
-        // Reconsulta os atrasados, já que mudar o status pode tirar
-        // (ou colocar) o chamado dessa lista
         const dadosAtrasados = await listarAtrasados();
         setIdsAtrasados(new Set(dadosAtrasados.map(c => c.id)));
+    }
+
+    async function handleToggleComentarios(chamado) {
+        if (chamadoExpandidoId === chamado.id) {
+            setChamadoExpandidoId(null);
+            return;
+        }
+        setChamadoExpandidoId(chamado.id);
+        setComentarios([]);
+        const dados = await listarComentarios(chamado.id);
+        console.log("Comentários recebidos da API:", dados);
+        setComentarios(dados);
+    }
+
+    async function handleAdicionarComentario(evento) {
+        evento.preventDefault();
+        const criado = await adicionarComentario(chamadoExpandidoId, textoComentario);
+        setComentarios([...comentarios, criado]);
+        setTextoComentario('');
     }
 
     if (carregando) return <p>Carregando chamados...</p>;
@@ -133,21 +155,22 @@ function App() {
                     </button>
                 )}
             </form>
+
             <div className="filtro-container">
                 <label htmlFor="filtro-status">Filtrar por status: </label>
-                    <select
-                        id="filtro-status"
-                            value={filtroStatus}
-                            onChange={e => setFiltroStatus(e.target.value)}
-                            className="filtro-status"
-                        >
-                        <option value="TODOS">Todos os status</option>
-        {STATUS_OPCOES.map(status => (
-            <option key={status} value={status}>{status}</option>
-                ))}
-                    </select>
-</div>
-<table></table>
+                <select
+                    id="filtro-status"
+                    value={filtroStatus}
+                    onChange={e => setFiltroStatus(e.target.value)}
+                    className="filtro-status"
+                >
+                    <option value="TODOS">Todos os status</option>
+                    {STATUS_OPCOES.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                    ))}
+                </select>
+            </div>
+
             <table>
                 <thead>
                     <tr>
@@ -161,47 +184,79 @@ function App() {
                 </thead>
                 <tbody>
                     {chamadosFiltrados.map(chamado => (
-                        <tr key={chamado.id} className={idsAtrasados.has(chamado.id) ? 'atrasado' : ''}>
-                            <td>{chamado.titulo}</td>
-                            <td>{chamado.solicitante}</td>
-                            <td>
-                                <span className={`prioridade prioridade-${chamado.prioridade}`}>
-                                    {chamado.prioridade}
-                                </span>
-                            </td>
-                            <td>
-                                <select
-                                    value={chamado.status}
-                                    onChange={e => handleMudarStatus(chamado, e.target.value)}
-                                >
-                                    {STATUS_OPCOES.map(status => (
-                                        <option key={status} value={status}>{status}</option>
-                                    ))}
-                                </select>
-                            </td>
-                            <td>
-                                {idsAtrasados.has(chamado.id) && (
-                                    <span className="badge-atrasado">⚠ Atrasado</span>
-                                )}
-                            </td>
-                            <td>
-                                <button type="button" className="btn-editar" onClick={() => handleIniciarEdicao(chamado)}>
-                                    Editar
-                                </button>
-                            </td>
-                        </tr>
+                        <Fragment key={chamado.id}>
+                            <tr className={idsAtrasados.has(chamado.id) ? 'atrasado' : ''}>
+                                <td>{chamado.titulo}</td>
+                                <td>{chamado.solicitante}</td>
+                                <td>
+                                    <span className={`prioridade prioridade-${chamado.prioridade}`}>
+                                        {chamado.prioridade}
+                                    </span>
+                                </td>
+                                <td>
+                                    <select
+                                        value={chamado.status}
+                                        onChange={e => handleMudarStatus(chamado, e.target.value)}
+                                    >
+                                        {STATUS_OPCOES.map(status => (
+                                            <option key={status} value={status}>{status}</option>
+                                        ))}
+                                    </select>
+                                </td>
+                                <td>
+                                    {idsAtrasados.has(chamado.id) && (
+                                        <span className="badge-atrasado">⚠ Atrasado</span>
+                                    )}
+                                </td>
+                                <td>
+                                    <button type="button" className="btn-editar" onClick={() => handleIniciarEdicao(chamado)}>
+                                        Editar
+                                    </button>
+                                    <button type="button" className="btn-editar" onClick={() => handleToggleComentarios(chamado)}>
+                                        Comentários
+                                    </button>
+                                </td>
+                            </tr>
+                            {chamadoExpandidoId === chamado.id && (
+                                <tr className="linha-comentarios">
+                                    <td colSpan={6}>
+                                        {comentarios.length === 0 && <p className="sem-comentarios">Nenhum comentário ainda.</p>}
+                                        <ul className="lista-comentarios">
+                                            {comentarios.map(c => (
+                                                <li key={c.id}>
+                                                    <span className="data-comentario">
+                                                        {new Date(c.dataCriacao).toLocaleString('pt-BR')}
+                                                    </span>
+                                                    {c.comentario}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <form onSubmit={handleAdicionarComentario} className="form-comentario">
+                                            <input
+                                                placeholder="Escreva um comentário"
+                                                value={textoComentario}
+                                                onChange={e => setTextoComentario(e.target.value)}
+                                                required
+                                            />
+                                            <button type="submit">Adicionar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            )}
+                        </Fragment>
                     ))}
                 </tbody>
-                    <div className="paginacao">
-                        <button disabled={paginaAtual === 0} onClick={() => setPaginaAtual(p => p - 1)}>
-                            ← Anterior
-                        </button>
-                        <span> Página {paginaAtual + 1} de {totalPaginas} </span>
-                        <button disabled={paginaAtual + 1 >= totalPaginas} onClick={() => setPaginaAtual(p => p + 1)}>
-                            Próxima →
-                        </button>
-                    </div>
             </table>
+            
+            <div className="paginacao">
+                <button disabled={paginaAtual === 0} onClick={() => setPaginaAtual(p => p - 1)}>
+                    ← Anterior
+                </button>
+                <span> Página {paginaAtual + 1} de {totalPaginas} </span>
+                <button disabled={paginaAtual + 1 >= totalPaginas} onClick={() => setPaginaAtual(p => p + 1)}>
+                    Próxima →
+                </button>
+            </div>
         </div>
     );
 }
