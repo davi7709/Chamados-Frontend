@@ -16,6 +16,7 @@ const CHAMADO_VAZIO = {
     titulo: '',
     descricao: '',
     solicitante: '',
+    categoria: '',
     prioridade: 'MEDIA'
 };
 
@@ -62,6 +63,7 @@ function App() {
             titulo: chamado.titulo,
             descricao: chamado.descricao,
             solicitante: chamado.solicitante,
+            categoria: chamado.categoria,
             prioridade: chamado.prioridade
         });
         formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -142,6 +144,14 @@ function App() {
                     onChange={handleCampoChange}
                     required
                 />
+                <select name="categoria" value={novoChamado.categoria} onChange={handleCampoChange}>
+                    <option>Selecione</option>
+                    <option value="HARDWARE">Hardware</option>
+                    <option value="SOFTWARE">Software</option>
+                    <option value="ACESSO">Acesso</option>
+                    <option value="REDE">Rede</option>
+                    <option value="OUTROS">Outros</option>
+                </select>
                 <select name="prioridade" value={novoChamado.prioridade} onChange={handleCampoChange}>
                     <option value="BAIXA">Baixa</option>
                     <option value="MEDIA">Média</option>
@@ -176,6 +186,7 @@ function App() {
                     <tr>
                         <th>Título</th>
                         <th>Solicitante</th>
+                        <th>Categoria</th>
                         <th>Prioridade</th>
                         <th>Status</th>
                         <th>Atenção</th>
@@ -188,6 +199,11 @@ function App() {
                             <tr className={idsAtrasados.has(chamado.id) ? 'atrasado' : ''}>
                                 <td>{chamado.titulo}</td>
                                 <td>{chamado.solicitante}</td>
+                                <td>
+                                    <span className={`categoria categoria-${chamado.categoria}`}>
+                                        {chamado.categoria}
+                                    </span>
+                                </td>
                                 <td>
                                     <span className={`prioridade prioridade-${chamado.prioridade}`}>
                                         {chamado.prioridade}

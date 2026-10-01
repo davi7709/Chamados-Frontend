@@ -45,7 +45,7 @@ export async function editarChamado(id, dados) {
     return resposta.json();
 }
 
-export async function listarChamados(pagina = 0, tamanho = 20) {
+export async function listarChamados(pagina = 0, tamanho = 10) {
     const resposta = await fetch(`${API_URL}?page=${pagina}&size=${tamanho}`);
     if (!resposta.ok) {
         throw new Error('Erro ao buscar chamados');
